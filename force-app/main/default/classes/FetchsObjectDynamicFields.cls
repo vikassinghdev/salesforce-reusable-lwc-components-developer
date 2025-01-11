@@ -1,8 +1,8 @@
 public class FetchsObjectDynamicFields {
     
     // get the sObject required fields...
-    @AuraEnabled(cacheable=true)
-    public static String getsObjectRequiredField(String objectApiName){
+    @AuraEnabled
+    public static String getObjectSchmeaFields(String objectApiName){
         try{
             Schema.SObjectType sobjectType = Schema.getGlobalDescribe().get(objectApiName);
             Map<String,Schema.SObjectField> fieldsMap =  sobjectType.getDescribe().fields.getMap();
@@ -13,28 +13,33 @@ public class FetchsObjectDynamicFields {
                 Boolean isRequired = field.isNillable();
                 String fieldType = String.valueOf(field.getType());
                 
-                if(FetchsObjectDynamicFields.ignoreAuditRequiredField(field.getName()) && ((!isRequired && !fieldType.equalsIgnoreCase('BOOLEAN')) || (field.isNameField() && field.isCreateable()))){
+                if(FetchsObjectDynamicFields.ignoreAuditRequiredField(field.getName())){
                     sObjectRequiredFieldWrapper fieldWrapperObj = new sObjectRequiredFieldWrapper();
                     fieldWrapperObj.label = field.getLabel();
                     fieldWrapperObj.apiName = field.getName();
-                    fieldWrapperObj.referanceObjectApiName = fieldType.equalsIgnoreCase('REFERENCE') ? field.getRelationshipName().replace('__r','__c') : '';
                     fieldWrapperObj.lenght = field.getLength();
-                    fieldWrapperObj.required = field.isNameField() ? isRequired : !isRequired;
                     fieldWrapperObj.fieldType = fieldType;
-                    
+                    fieldWrapperObj.referanceObjectApiName = fieldType.equalsIgnoreCase('REFERENCE') ? field.getRelationshipName()?.replace('__r','__c') : '';
                     if(fieldType.contains('PICKLIST')){
                         fieldWrapperObj.options = FetchsObjectDynamicFields.getPicklistOptions(sobjectType, field.getName());
                     }
+                    
+                    if((!isRequired && !fieldType.equalsIgnoreCase('BOOLEAN')) || (field.isNameField() && field.isCreateable())){
+                        fieldWrapperObj.required = field.isNameField() ? isRequired : !isRequired;
+                    }
+                    else{
+                        fieldWrapperObj.required = fieldType.equalsIgnoreCase('BOOLEAN') ? false : !isRequired;
+                    }
                     sObjectfieldWrapperObjList.add(fieldWrapperObj);
                     //System.debug('Label : '+field.getLabel()+' Api Name :: '+field.getName()+' is Required :: '+(field.isNillable())+' Tyep of field >> '+field.getType()+' Length >> '+field.getLength());
+                    
                 }
             }
-
             if(!sObjectfieldWrapperObjList.isEmpty())
                 return JSON.serialize(sObjectfieldWrapperObjList);
         }
         catch(Exception ex){
-            System.debug('Class Name : BulkRecordInsert -> Method Name : getObjectRecordFieldSchmea  Message : '+ex.getMessage()+' Line No : '+ex.getLineNumber());
+            System.debug('Class Name : BulkRecordInsert -> Method Name : getObjectSchmeaFields  Message : '+ex.getMessage()+' Line No : '+ex.getLineNumber());
         }
         return null;
     }
@@ -43,8 +48,8 @@ public class FetchsObjectDynamicFields {
     public static Boolean ignoreAuditRequiredField(String fieldApiName){
         Boolean isRequired = true;
         if(fieldApiName.equalsIgnoreCase('Id') || fieldApiName.equalsIgnoreCase('IsDeleted') || fieldApiName.equalsIgnoreCase('CreatedDate') || fieldApiName.equalsIgnoreCase('OwnerId')
-             || fieldApiName.equalsIgnoreCase('CreatedById') || fieldApiName.equalsIgnoreCase('LastModifiedDate') || fieldApiName.equalsIgnoreCase('LastModifiedById') ||
-             fieldApiName.equalsIgnoreCase('SystemModstamp') || fieldApiName.equalsIgnoreCase('LastViewedDate') || fieldApiName.equalsIgnoreCase('LastReferencedDate')){
+             || fieldApiName.equalsIgnoreCase('CreatedById') || fieldApiName.equalsIgnoreCase('LastModifiedDate') || fieldApiName.equalsIgnoreCase('LastModifiedById') || fieldApiName.equalsIgnoreCase('LastActivityDate') ||
+             fieldApiName.equalsIgnoreCase('SystemModstamp') || fieldApiName.equalsIgnoreCase('LastViewedDate') || fieldApiName.equalsIgnoreCase('LastReferencedDate')){ 
                  isRequired = false;
              }
         return isRequired;
