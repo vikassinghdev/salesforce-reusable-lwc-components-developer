@@ -1,5 +1,7 @@
 import { LightningElement, track, wire } from "lwc";
-import getfieldName from "@salesforce/apex/FatchDynamicFieldName.getFieldsAndTypes";
+import getfieldName from "@salesforce/apex/FetchsObjectDynamicFields.getsObjectRequiredField";
+import {MessageContext,subscribe} from 'lightning/messageService';
+import EXAMPLE_CHANNEL from '@salesforce/messageChannel/storage__c';
 export default class DynamicTable extends LightningElement {
   @track tablehadder = [];
   @track storeValue = {};
@@ -10,85 +12,97 @@ export default class DynamicTable extends LightningElement {
   @track initialhadder = ["name", "billingstreet", "type", "phone"];
   @track avilableForSelection = [];
   @track selectedFields = [];
-  currentObjectName = "Account";
+  currentObjectName = "opportunity";
   @track showMoreFields = false
-  @wire(getfieldName, { objectName: "$currentObjectName" })
+ @wire(MessageContext)
+      MessageContext;
+  connectedCallback() {
+   this.getValueformChild();
+  }
+getValueformChild(event){
+  subscribe(this.MessageContext, EXAMPLE_CHANNEL, (message) => {
+    this.currentObjectName = message.objectName;
+  });
+}
+  @wire(getfieldName, {objectApiName: "$currentObjectName" })
   setallthewrapper({ data, error }) {
     // createing header for the table
-    data?.map((item, index) => {
-     // console.log(JSON.stringify(item));
-      if (this.initialhadder.includes(item.fName)) {
-        this.tablehadder.push({
-          fName: item.fName,
-          fType: item.fType,
-      });
-      }else{
-        this.avilableForSelection.push({
-          label: item.fName,
-          value: item.fType,
-      });
-      }
-    });
-    // creating row for the table where value will populate
-    data?.map((item, index) => {
-      if (index == 0) {
-        var innderFields = {
-          innderField: [],
-        };
-        this.tablehadder?.map((item) => {
-          if(item.fType=='STRING' || item.fType=='PHONE' || item.fType=='EMAIL'){
-            innderFields.innderField.push({
-              id: index,
-              Name: "",
-              dataType: item.fType,
-              fieldName: item.fName,
-              text:true,
-              checkbox:false,
-              picklist:false,
-              textaria:false
-            })
-          }else if(item.fType=='BOOLEAN'){
-            innderFields.innderField.push({
-              id: index,
-              Name: "",
-              dataType: item.fType,
-              fieldName: item.fName,
-              text:false,
-              checkbox:true,
-              picklist:false,
-              textaria:false
-            })
-            }else if(item.fType=='PICKLIST'){
-              innderFields.innderField.push({
-                id: index,
-                Name: "",
-                dataType: item.fType,
-                fieldName: item.fName,
-                text:false,
-                checkbox:false,
-                picklist:true,
-                textaria:false,
-                options:[{ label: 'New', value: 'new' },
-                    { label: 'In Progress', value: 'inProgress' },
-                  { label: 'Finished', value: 'finished' },]
-              })
-            }else if(item.fType=='TEXTAREA'){
-              innderFields.innderField.push({
-                id: index,
-                Name: "",
-                dataType: item.fType,
-                fieldName: item.fName,
-                text:false,
-                checkbox:false,
-                picklist:false,
-                textaria:true
-              })
-            }
+    console.table('data table',data);
+    
+    // data?.map((item, index) => {
+    //  // console.log(JSON.stringify(item));
+    //   if (this.initialhadder.includes(item.fName)) {
+    //     this.tablehadder.push({
+    //       fName: item.fName,
+    //       fType: item.fType,
+    //   });
+    //   }else{
+    //     this.avilableForSelection.push({
+    //       label: item.fName,
+    //       value: item.fType,
+    //   });
+    //   }
+    // });
+    // // creating row for the table where value will populate
+    // data?.map((item, index) => {
+    //   if (index == 0) {
+    //     var innderFields = {
+    //       innderField: [],
+    //     };
+    //     this.tablehadder?.map((item) => {
+    //       if(item.fType=='STRING' || item.fType=='PHONE' || item.fType=='EMAIL'){
+    //         innderFields.innderField.push({
+    //           id: index,
+    //           Name: "",
+    //           dataType: item.fType,
+    //           fieldName: item.fName,
+    //           text:true,
+    //           checkbox:false,
+    //           picklist:false,
+    //           textaria:false
+    //         })
+    //       }else if(item.fType=='BOOLEAN'){
+    //         innderFields.innderField.push({
+    //           id: index,
+    //           Name: "",
+    //           dataType: item.fType,
+    //           fieldName: item.fName,
+    //           text:false,
+    //           checkbox:true,
+    //           picklist:false,
+    //           textaria:false
+    //         })
+    //         }else if(item.fType=='PICKLIST'){
+    //           innderFields.innderField.push({
+    //             id: index,
+    //             Name: "",
+    //             dataType: item.fType,
+    //             fieldName: item.fName,
+    //             text:false,
+    //             checkbox:false,
+    //             picklist:true,
+    //             textaria:false,
+    //             options:[{ label: 'New', value: 'new' },
+    //                 { label: 'In Progress', value: 'inProgress' },
+    //               { label: 'Finished', value: 'finished' },]
+    //           })
+    //         }else if(item.fType=='TEXTAREA'){
+    //           innderFields.innderField.push({
+    //             id: index,
+    //             Name: "",
+    //             dataType: item.fType,
+    //             fieldName: item.fName,
+    //             text:false,
+    //             checkbox:false,
+    //             picklist:false,
+    //             textaria:true
+    //           })
+    //         }
           
-        });
-        this.dynamcFieldName.mainfield.push(innderFields);
-      }
-    });
+    //     });
+    //     this.dynamcFieldName.mainfield.push(innderFields);
+    //   }
+    // });
     console.log('data::::',JSON.stringify(this.dynamcFieldName));
     // creating data for field secelction 
   }

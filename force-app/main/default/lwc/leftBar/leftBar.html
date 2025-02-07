@@ -1,0 +1,27 @@
+<template>
+   <div class="slds-p-around--small vkan-Shodow vkan-Hieght-100">
+    <lightning-combobox options={} label="Select Object" value="Account"></lightning-combobox>
+    <div class="vkan-center text-bold slds-m-vertical--xx-small">
+      <h1>Plese Select Object Name</h1>
+    </div>
+        
+    <template for:each={allObjectList} for:item="object">
+      <div key={object} onclick={handleClick} >
+         <div  class="vkan-background-color vkan-raduis-10 vkan-color-white slds-m-around--xxx-small vkan-pointer " onclick={handleClick} data-id={object.id}>
+            <div class="slds-grid slds-wrap slds-p-around--x-small"  data-id={object.value}>
+              <div class="slds-col slds-size_8-of-12"  data-id={object.value}>
+                 {object.label}
+           </div>
+           <div class="slds-col slds-size_4-of-12 vkan-right"  data-id={object.value}>
+            <lightning-icon icon-name="utility:add" alternative-text="Connected" onclick={handleClick} data-id={object.value} size="x-small" title="Connected">
+           </lightning-icon>
+           </div>
+            </div>
+         </div>
+      </div>
+    </template>
+
+  
+   </div>   
+
+</template>
